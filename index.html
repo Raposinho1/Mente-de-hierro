@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#090909">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mente de Hierro">
+<link rel="manifest" href="./manifest.webmanifest">
+<title>Mente de Hierro</title>
+<style>
+:root{--bg:#080808;--panel:#141414;--panel2:#101010;--line:#292929;--text:#f4f4f4;--muted:#858585;--accent:#d9ff35;--danger:#ff5d5d}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text)}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif}
+button,input{font:inherit}
+button{touch-action:manipulation}
+.app{width:min(560px,100%);margin:auto;padding:22px 18px calc(30px + env(safe-area-inset-bottom))}
+header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
+.eyebrow{font-size:10px;font-weight:900;letter-spacing:.2em;color:var(--muted)}
+h1{font-size:26px;line-height:1;margin:6px 0 5px;letter-spacing:.04em}
+.motto{font-size:9px;font-weight:900;letter-spacing:.18em;color:var(--accent)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px}
+.config{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field label{display:block;color:var(--muted);font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;margin:0 0 6px}
+input{width:100%;background:#0b0b0b;border:1px solid var(--line);border-radius:11px;color:var(--text);padding:12px;outline:0;font-size:18px;font-weight:800}
+input:focus{border-color:#555}
+input:disabled{opacity:.5}
+.phase{text-align:center;padding:28px 0 15px}
+.phase-name{font-size:12px;font-weight:900;letter-spacing:.22em;color:var(--muted)}
+.set-label{font-size:16px;font-weight:750;margin-top:7px}
+.timer{font-variant-numeric:tabular-nums;font-size:84px;font-weight:900;letter-spacing:-.06em;line-height:1;margin:23px 0 17px}
+.track{height:5px;background:#292929;border-radius:99px;overflow:hidden}
+.bar{height:100%;width:0;background:var(--accent)}
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+button{border:0;border-radius:11px;padding:14px 9px;background:#292929;color:var(--text);font-size:14px;font-weight:900;cursor:pointer}
+button.primary{background:var(--accent);color:#080808}
+button.danger{background:#321515;color:#ff9b9b}
+button:disabled{opacity:.3;cursor:not-allowed}
+.status{text-align:center;color:var(--muted);font-size:12px;min-height:18px;margin:15px 0 0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);margin-top:17px;padding-top:16px}
+.stat{text-align:center}
+.stat strong{display:block;font-size:21px;font-variant-numeric:tabular-nums}
+.stat span{font-size:9px;color:var(--muted);font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.history{margin-top:15px;border-top:1px solid var(--line);padding-top:14px}
+.history-title{font-size:10px;color:var(--muted);font-weight:900;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+.history-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #202020;font-size:12px}
+.history-row:last-child{border-bottom:0}
+.history-row b{font-weight:800}
+.small{color:var(--muted)}
+.install{margin-top:12px;color:#6f6f6f;text-align:center;font-size:10px;line-height:1.4}
+@media(max-width:380px){.timer{font-size:68px}}
+</style>
+</head>
+<body>
+<main class="app">
+<header>
+  <div>
+    <div class="eyebrow">IRON MIND / WEB</div>
+    <h1>MENTE DE HIERRO</h1>
+    <div class="motto">NO NEGOCIES. EJECUTA.</div>
+  </div>
+</header>
+
+<section class="card">
+  <div class="config">
+    <div class="field"><label for="sets">Series</label><input id="sets" type="number" min="1" max="99" value="5" inputmode="numeric"></div>
+    <div class="field"><label for="work">Trabajo · s</label><input id="work" type="number" min="1" max="3600" value="30" inputmode="numeric"></div>
+    <div class="field"><label for="rest">Descanso · s</label><input id="rest" type="number" min="0" max="3600" value="30" inputmode="numeric"></div>
+    <div class="field"><label for="total">Volumen</label><input id="total" readonly value="02:30"></div>
+  </div>
+
+  <div class="phase">
+    <div id="phaseName" class="phase-name">LISTO</div>
+    <div id="setLabel" class="set-label">Serie 1 / 5</div>
+    <div id="timer" class="timer">00:30</div>
+    <div class="track"><div id="bar" class="bar"></div></div>
+  </div>
+
+  <div class="buttons">
+    <button id="start" class="primary">EMPEZAR</button>
+    <button id="pause" disabled>PAUSAR</button>
+    <button id="restart" disabled>REINICIAR SERIE</button>
+    <button id="reset" class="danger">REINICIAR</button>
+  </div>
+
+  <div id="status" class="status">Configura la sesión y pulsa EMPEZAR.</div>
+
+  <div class="stats">
+    <div class="stat"><strong id="done">0/5</strong><span>series</span></div>
+    <div class="stat"><strong id="workDone">00:00</strong><span>trabajo</span></div>
+    <div class="stat"><strong id="currentPhase">—</strong><span>fase</span></div>
+  </div>
+
+  <div class="history">
+    <div class="history-title">Últimas sesiones</div>
+    <div id="historyList"><div class="small">Todavía no hay sesiones.</div></div>
+  </div>
+
+  <div class="install">La configuración y el historial se guardan en este dispositivo.</div>
+</section>
+</main>
+
+<script>
+(() => {
+"use strict";
+
+const $ = id => document.getElementById(id);
+const els = {
+  sets:$("sets"), work:$("work"), rest:$("rest"), total:$("total"),
+  phase:$("phaseName"), label:$("setLabel"), timer:$("timer"), bar:$("bar"),
+  start:$("start"), pause:$("pause"), restart:$("restart"), reset:$("reset"),
+  status:$("status"), done:$("done"), workDone:$("workDone"),
+  currentPhase:$("currentPhase"), history:$("historyList")
+};
+
+const STORAGE="mente-de-hierro:v1";
+let state="ready";
+let phase="work";
+let currentSet=1;
+let completedSets=0;
+let completedWork=0;
+let remaining=30;
+let phaseDuration=30;
+let lastFrame=null;
+let raf=null;
+let audio=null;
+let wakeLock=null;
+let sessionStartedAt=null;
+
+function config(){
+  return {
+    sets:clamp(parseInt(els.sets.value,10)||1,1,99),
+    work:clamp(parseInt(els.work.value,10)||1,1,3600),
+    rest:clamp(parseInt(els.rest.value,10)||0,0,3600)
+  };
+}
+function clamp(n,min,max){return Math.max(min,Math.min(max,n))}
+function format(sec){
+  sec=Math.max(0,Math.ceil(sec));
+  return String(Math.floor(sec/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0");
+}
+function plannedSeconds(){
+  const c=config();
+  return c.sets*c.work+Math.max(0,c.sets-1)*c.rest;
+}
+function saveConfig(){
+  localStorage.setItem(STORAGE,JSON.stringify({
+    config:{sets:config().sets,work:config().work,rest:config().rest}
+  }));
+}
+function loadConfig(){
+  try{
+    const x=JSON.parse(localStorage.getItem(STORAGE)||"{}");
+    if(x.config){
+      els.sets.value=x.config.sets;
+      els.work.value=x.config.work;
+      els.rest.value=x.config.rest;
+    }
+  }catch(e){}
+}
+function setInputsDisabled(disabled){
+  [els.sets,els.work,els.rest].forEach(x=>x.disabled=disabled);
+}
+function render(){
+  const c=config();
+  els.total.value=format(plannedSeconds());
+  els.timer.textContent=format(remaining);
+  els.bar.style.width=(phaseDuration?clamp((1-remaining/phaseDuration)*100,0,100):0)+"%";
+
+  els.phase.textContent =
+    state==="ready" ? "LISTO" :
+    state==="done" ? "COMPLETADO" :
+    state==="paused" ? "PAUSADO" :
+    phase==="work" ? "TRABAJO" : "DESCANSO";
+
+  els.label.textContent=state==="done"
+    ? `${c.sets} / ${c.sets} series`
+    : `Serie ${clamp(currentSet,1,c.sets)} / ${c.sets}`;
+
+  els.done.textContent=`${completedSets}/${c.sets}`;
+  els.workDone.textContent=format(completedWork);
+  els.currentPhase.textContent=(state==="ready"||state==="done")?"—":(phase==="work"?"WORK":"REST");
+
+  els.start.disabled=state!=="ready";
+  els.pause.disabled=state==="ready"||state==="done";
+  els.pause.textContent=state==="paused"?"REANUDAR":"PAUSAR";
+  els.restart.disabled=state==="ready"||state==="done"||phase!=="work";
+  setInputsDisabled(state!=="ready");
+
+  if(state==="done") els.status.textContent="Sesión completada.";
+  renderHistory();
+}
+function renderHistory(){
+  const h=getHistory();
+  if(!h.length){els.history.innerHTML='<div class="small">Todavía no hay sesiones.</div>';return}
+  els.history.innerHTML=h.slice(0,5).map(s =>
+    `<div class="history-row"><span><b>${escapeHtml(s.date)}</b><br><span class="small">${s.sets} series · ${s.work}s trabajo · ${s.rest}s descanso</span></span><span>${format(s.totalWork)}</span></div>`
+  ).join("");
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+}
+function getHistory(){
+  try{return JSON.parse(localStorage.getItem(STORAGE+":history")||"[]")}catch(e){return[]}
+}
+function saveCompletedSession(){
+  const c=config();
+  const h=getHistory();
+  h.unshift({
+    date:new Date().toLocaleString("es-ES",{dateStyle:"short",timeStyle:"short"}),
+    sets:c.sets,work:c.work,rest:c.rest,totalWork:completedWork
+  });
+  localStorage.setItem(STORAGE+":history",JSON.stringify(h.slice(0,20)));
+}
+async function audioUnlock(){
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!audio && AC) audio=new AC();
+    if(audio && audio.state==="suspended") await audio.resume();
+  }catch(e){}
+}
+function tone(type){
+  try{
+    if(audio){
+      const now=audio.currentTime;
+      const o=audio.createOscillator(),g=audio.createGain();
+      o.type="sine";
+      o.frequency.value=type==="complete"?1046:type==="rest"?660:880;
+      g.gain.setValueAtTime(.0001,now);
+      g.gain.exponentialRampToValueAtTime(.08,now+.015);
+      g.gain.exponentialRampToValueAtTime(.0001,now+.20);
+      o.connect(g);g.connect(audio.destination);o.start(now);o.stop(now+.21);
+    }
+  }catch(e){}
+  if(navigator.vibrate) navigator.vibrate(type==="complete"?[120,60,120,60,180]:[120,80,120]);
+}
+async function acquireWakeLock(){
+  try{
+    if("wakeLock" in navigator && !wakeLock) wakeLock=await navigator.wakeLock.request("screen");
+  }catch(e){}
+}
+async function releaseWakeLock(){
+  try{if(wakeLock){await wakeLock.release();wakeLock=null}}catch(e){}
+}
+function setPhase(next){
+  const c=config();
+  phase=next;
+  phaseDuration=next==="work"?c.work:c.rest;
+  remaining=phaseDuration;
+  tone(next==="rest"?"rest":"normal");
+}
+function finishWork(){
+  const c=config();
+  completedSets++;
+  completedWork+=c.work;
+
+  if(completedSets>=c.sets){
+    state="done";
+    remaining=0;
+    els.status.textContent="Sesión completada.";
+    cancelAnimationFrame(raf);
+    tone("complete");
+    saveCompletedSession();
+    releaseWakeLock();
+    render();
+    return;
+  }
+
+  if(c.rest>0){
+    phase="rest"; phaseDuration=c.rest; remaining=c.rest;
+    els.status.textContent="Descanso.";
+    tone("rest");
+  }else{
+    currentSet++;
+    phase="work"; phaseDuration=c.work; remaining=c.work;
+    els.status.textContent="Siguiente serie.";
+    tone("normal");
+  }
+}
+function finishRest(){
+  const c=config();
+  currentSet++;
+  phase="work"; phaseDuration=c.work; remaining=c.work;
+  els.status.textContent="Trabajo.";
+  tone("normal");
+}
+function loop(now){
+  if(state!=="running") return;
+  if(lastFrame===null) lastFrame=now;
+  const delta=(now-lastFrame)/1000;
+  lastFrame=now;
+  remaining-=delta;
+
+  while(remaining<=0 && state==="running"){
+    if(phase==="work") finishWork(); else finishRest();
+  }
+  render();
+  if(state==="running") raf=requestAnimationFrame(loop);
+}
+async function startSession(){
+  await audioUnlock();
+  await acquireWakeLock();
+  saveConfig();
+  const c=config();
+  state="running";phase="work";currentSet=1;completedSets=0;completedWork=0;
+  remaining=c.work;phaseDuration=c.work;lastFrame=performance.now();
+  sessionStartedAt=Date.now();
+  els.status.textContent="En ejecución.";
+  tone("normal");render();
+  cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);
+}
+function pauseSession(){
+  if(state!=="running")return;
+  state="paused";lastFrame=null;cancelAnimationFrame(raf);
+  els.status.textContent="Pausado. El tiempo queda congelado.";
+  tone("normal");render();
+}
+async function resumeSession(){
+  if(state!=="paused")return;
+  await audioUnlock();await acquireWakeLock();
+  state="running";lastFrame=performance.now();
+  els.status.textContent="En ejecución.";
+  tone("normal");render();raf=requestAnimationFrame(loop);
+}
+function restartCurrentSet(){
+  if(state==="ready"||state==="done"||phase!=="work")return;
+  const c=config();
+  state="running";phase="work";phaseDuration=c.work;remaining=c.work;
+  lastFrame=performance.now();
+  els.status.textContent="Serie reiniciada desde cero.";
+  tone("normal");render();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);
+}
+function resetSession(){
+  cancelAnimationFrame(raf);releaseWakeLock();
+  state="ready";phase="work";currentSet=1;completedSets=0;completedWork=0;
+  const c=config();phaseDuration=c.work;remaining=c.work;lastFrame=null;
+  els.status.textContent="Configura la sesión y pulsa EMPEZAR.";
+  render();
+}
+els.start.addEventListener("click",startSession);
+els.pause.addEventListener("click",()=>state==="paused"?resumeSession():pauseSession());
+els.restart.addEventListener("click",restartCurrentSet);
+els.reset.addEventListener("click",resetSession);
+
+[els.sets,els.work,els.rest].forEach(input=>{
+  input.addEventListener("input",()=>{
+    if(state==="ready"){
+      const c=config();
+      phaseDuration=c.work;remaining=c.work;
+    }
+    saveConfig();render();
+  });
+});
+
+document.addEventListener("visibilitychange",async()=>{
+  if(document.visibilityState==="visible" && state==="running"){
+    await acquireWakeLock();
+    lastFrame=performance.now();
+  }
+});
+
+document.addEventListener("keydown",e=>{
+  if(e.code==="Space" && !e.repeat){
+    e.preventDefault();
+    if(state==="ready") startSession();
+    else if(state==="paused") resumeSession();
+    else if(state==="running") pauseSession();
+  }
+  if(e.key.toLowerCase()==="r" && !e.repeat) restartCurrentSet();
+});
+
+window.addEventListener("beforeunload",()=>{cancelAnimationFrame(raf);releaseWakeLock()});
+
+loadConfig();render();
+})();
+</script>
+</body>
+</html>
